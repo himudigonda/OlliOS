@@ -12,6 +12,10 @@ struct ChatView: View {
   @State private var isDocumentPickerPresented = false
   let chat: Chat
 
+  var isMultiModal: Bool {
+    modelService.selectedModel?.isMultiModal ?? false
+  }
+
   var body: some View {
     VStack(spacing: 0) {
       // Messages Scroll Area
@@ -63,23 +67,33 @@ struct ChatView: View {
           HStack(spacing: 12) {
             // Left Buttons
             HStack(spacing: 12) {
-              Button(action: {
-                if !isGlobeActive {
-                  isDocumentPickerPresented.toggle()
+              if isMultiModal {
+                Button(action: {
+                  if !isGlobeActive {
+                    isDocumentPickerPresented.toggle()
+                  }
+                }) {
+                  Image(systemName: "plus.circle.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(isGlobeActive ? .gray : .blue)
                 }
-              }) {
-                Image(systemName: "plus.circle.fill")
-                  .font(.system(size: 24))
-                  .foregroundColor(isGlobeActive ? .gray : .blue)
-              }
-              .disabled(isGlobeActive)
+                .disabled(isGlobeActive)
 
-              PhotosPicker(selection: $selectedItem, matching: .images) {
-                Image(systemName: "photo.fill")
-                  .font(.system(size: 24))
-                  .foregroundColor(isGlobeActive ? .gray : .blue)
+                PhotosPicker(selection: $selectedItem, matching: .images) {
+                  Image(systemName: "photo.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(isGlobeActive ? .gray : .blue)
+                }
+                .disabled(isGlobeActive)
+              } else {
+                Button(action: {
+                  print("Web button pressed")
+                }) {
+                  Image(systemName: "globe")
+                    .font(.system(size: 24))
+                    .foregroundColor(isGlobeActive ? .gray : .blue)
+                }
               }
-              .disabled(isGlobeActive)
             }
 
             Spacer()

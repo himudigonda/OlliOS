@@ -9,8 +9,8 @@ class ModelService: ObservableObject {
   private var cancellables = Set<AnyCancellable>()
 
   init() {
-    loadSelectedModel()
     fetchModels()
+    loadSelectedModel()
     print("ModelService.swift: Initialized")
   }
 
@@ -38,8 +38,11 @@ class ModelService: ObservableObject {
     } else {
       self.models = models
     }
-    self.selectedModel = self.models.first
-    saveSelectedModel()
+
+    if selectedModel == nil {
+      selectedModel = self.models.first
+      saveSelectedModel()
+    }
   }
 
   func saveSelectedModel() {

@@ -6,6 +6,8 @@ struct ContentView: View {
   @EnvironmentObject var modelService: ModelService
   @EnvironmentObject var viewModel: ChatViewModel
 
+  @GestureState private var dragOffset = CGSize.zero
+
   var body: some View {
     ZStack(alignment: .leading) {
       NavigationView {
@@ -34,11 +36,36 @@ struct ContentView: View {
       .frame(maxWidth: .infinity, alignment: .leading)
       .offset(x: isSidebarVisible ? UIScreen.main.bounds.width * 0.75 : 0)
       .disabled(isSidebarVisible)
+      .gesture(
+        DragGesture()
+          .updating(
+            $dragOffset,
+            body: { (value, state, _) in
+              state = value.translation
+            }
+          )
+          .onEnded({ value in
+            if value.translation.width > 100 && !isSidebarVisible {
+              isSidebarVisible = true
+            } else if value.translation.width < -100 && isSidebarVisible {
+              isSidebarVisible = false
+            }
+          })
+      )
 
       if isSidebarVisible {
         SidebarView(isSidebarVisible: $isSidebarVisible)
           .frame(width: UIScreen.main.bounds.width * 0.75)
           .transition(.move(edge: .leading))
+          .gesture(
+            DragGesture()
+              .onEnded({ value in
+                if value.translation.width < -100 {
+                  isSidebarVisible = false
+                }
+              })
+          )
+
       }
     }
     .animation(.easeInOut, value: isSidebarVisible)
