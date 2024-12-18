@@ -100,7 +100,7 @@ class LLMClient:
                             json_line = json.loads(line)
                             if "response" in json_line:
                                 full_response += json_line["response"]
-                                log.debug(f"Partial response: {json_line['response']}")
+                                # log.debug(f"Partial response: {json_line['response']}")
                         except json.JSONDecodeError as e:
                             log.error(f"JSONDecodeError: {e}, Line: {line}")
                             continue
@@ -108,7 +108,8 @@ class LLMClient:
 
             log.debug("Attempting to parse response as JSON")
             try:
-                json_response = json.loads(f'{{"response": "{full_response}"}}')
+                # Ensure the response is properly formatted as JSON
+                json_response = full_response
                 log.debug(f"Parsed JSON response: {json_response}")
                 log.debug(f"generate_response returning JSON: {json_response}")
                 return json_response
