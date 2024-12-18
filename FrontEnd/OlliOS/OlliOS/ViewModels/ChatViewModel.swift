@@ -48,6 +48,7 @@ class ChatViewModel: ObservableObject {
       print("ChatViewModel.swift: Chat deleted - \(chat.title)")
     }
   }
+
   func pinChat(chat: Chat) {
     if let index = chats.firstIndex(where: { $0.id == chat.id }) {
       chats[index].isPinned.toggle()
@@ -82,6 +83,7 @@ class ChatViewModel: ObservableObject {
     attachments.removeAll()  // Clear attachments after sending
     print("ChatViewModel.swift: Attachments cleared")
   }
+
   private func fetchResponse(for input: String, attachments: [URL], currentChatId: UUID) {
     guard let url = URL(string: "\(APIConstants.baseURL)\(APIConstants.generateTextEndpoint)"),
       let model = selectedModel

@@ -22,9 +22,9 @@ struct SearchBar: View {
         }
       }
     }
-    .padding(8)
-    .background(Color(.systemGray6))
-    .cornerRadius(10)
+    .padding(9)
+    .background(Color(.white))
+    .cornerRadius(14)
     .padding(.horizontal)
   }
 }

@@ -49,12 +49,16 @@ struct SidebarView: View {
   @EnvironmentObject var viewModel: ChatViewModel
   @Binding var isSidebarVisible: Bool
 
-  var pinnedChats: [Chat] {
-    viewModel.chats.filter { $0.isPinned }
-  }
-
-  var unpinnedChats: [Chat] {
-    viewModel.chats.filter { !$0.isPinned }
+  var sortedChats: [Chat] {
+    viewModel.chats.sorted {
+      if $0.isPinned && !$1.isPinned {
+        return true
+      } else if !$0.isPinned && $1.isPinned {
+        return false
+      } else {
+        return $0.createdDate > $1.createdDate
+      }
+    }
   }
 
   var body: some View {
@@ -66,51 +70,31 @@ struct SidebarView: View {
         }
       VStack(alignment: .leading, spacing: 20) {
         HStack {
+          SearchBar(text: .constant(""))
+            .frame(maxHeight: 35)
           Spacer()
           Button(action: {
-            isSidebarVisible = false
+            viewModel.createNewChat()
           }) {
-            Image(systemName: "xmark")
+            Image(systemName: "square.and.pencil")
               .font(.system(size: 20))
-              .foregroundColor(.gray)
+              .foregroundColor(.blue)
           }
-        }.padding([.top, .trailing])
-
-        // Search Bar
-        SearchBar(text: .constant(""))
-          .padding(.horizontal)
+        }.padding([.top, .horizontal])
 
         // List of Models (Placeholder)
         VStack(alignment: .leading) {
-          Text("Pinned Chats")
-            .font(.headline)
-            .padding(.leading)
-            .foregroundColor(.gray)
+
           ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-              ForEach(pinnedChats) { chat in
+              ForEach(sortedChats) { chat in
                 ChatRow(chat: chat)
               }
             }
             .padding(.horizontal)
 
           }
-        }
-        .padding(.top, 10)
 
-        VStack(alignment: .leading) {
-          Text("Chats")
-            .font(.headline)
-            .padding(.leading)
-            .foregroundColor(.gray)
-          ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
-              ForEach(unpinnedChats) { chat in
-                ChatRow(chat: chat)
-              }
-            }
-            .padding(.horizontal)
-          }
         }
         .padding(.top, 10)
 
@@ -126,17 +110,7 @@ struct SidebarView: View {
           Spacer()
         }
         .padding(.horizontal)
-        Button(action: {
-          viewModel.createNewChat()
-        }) {
-          HStack {
-            Image(systemName: "plus")
-              .resizable()
-              .frame(width: 20, height: 20)
-            Text("New Chat")
-          }
 
-        }.padding(.horizontal)
       }
       .frame(width: UIScreen.main.bounds.width * 0.75, alignment: .leading)
       .background(Color.systemGray5)
@@ -178,6 +152,11 @@ struct ChatRow: View {
         ) {
           Label("Delete", systemImage: "trash")
         }
+      }
+      if chat.isPinned {
+        Image(systemName: "pin.fill")
+          .foregroundColor(.gray)
+          .font(.system(size: 12))
       }
     }
     .padding(.vertical, UIConstants.Spacing.small)
