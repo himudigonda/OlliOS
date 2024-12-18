@@ -9,6 +9,7 @@ struct ChatView: View {
   @State private var selectedItem: PhotosPickerItem? = nil
   @State private var selectedImage: UIImage? = nil
   @State private var isDocumentPickerPresented = false
+  @State private var isSidebarVisible = false  // Add this line
 
   var body: some View {
     NavigationStack {
@@ -110,7 +111,7 @@ struct ChatView: View {
       .toolbar {
         ToolbarItem(placement: .principal) {
           // TopBar replaces the navigation title
-          TopBar(selectedModel: $viewModel.selectedModel)
+          TopBar(selectedModel: $viewModel.selectedModel, isSidebarVisible: $isSidebarVisible)  // Add isSidebarVisible argument
             .environmentObject(modelService)
         }
       }

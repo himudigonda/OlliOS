@@ -3,10 +3,22 @@ import SwiftUI
 struct TopBar: View {
   @EnvironmentObject var modelService: ModelService
   @Binding var selectedModel: Model?
+  @Binding var isSidebarVisible: Bool
 
   var body: some View {
     HStack {
-      // Dropdown for Model Selection
+      // Hamburger Menu on the Left
+      Button(action: {
+        isSidebarVisible.toggle()
+      }) {
+        Image(systemName: "line.horizontal.3")
+          .font(.system(size: 16, weight: .semibold))
+          .foregroundColor(.blue)
+      }
+
+      Spacer()
+
+      // Dropdown Menu Centered
       Menu {
         ForEach(modelService.models, id: \.self) { model in
           Button(action: {
@@ -36,8 +48,9 @@ struct TopBar: View {
           .foregroundColor(.blue)
       }
     }
-    .padding()
-    // .background(Color(UIColor.secondarySystemBackground))
-    // .clipShape(RoundedRectangle(cornerRadius: 25))
+    .padding(.horizontal, 0)
+    .padding(.vertical, 10)
+
+    //     .background(Color(UIColor.secondarySystemBackground))
   }
 }
