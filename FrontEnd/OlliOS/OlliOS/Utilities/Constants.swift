@@ -1,4 +1,3 @@
-// frontend/OlliOS/OlliOS/Utilities/Constants.swift
 import SwiftUI
 
 // MARK: - API Constants
@@ -12,7 +11,7 @@ struct APIConstants {
 struct UIConstants {
   struct Spacing {
     static let small: CGFloat = 8
-    static let medium: CGFloat = 16
+    static let medium: CGFloat = 12
     static let large: CGFloat = 24
     static let xlarge: CGFloat = 32
   }
@@ -29,7 +28,7 @@ struct UIConstants {
 
   struct IconSizes {
     static let small: CGFloat = 16
-    static let medium: CGFloat = 18  // Slightly smaller for better proportion
+    static let medium: CGFloat = 20  // Slightly smaller for better proportion
     static let large: CGFloat = 24
   }
 }
