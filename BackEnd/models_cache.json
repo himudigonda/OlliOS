@@ -1,11 +1,1 @@
-[
-    {
-        "model_name": "llama3.2-vision:11b"
-    },
-    {
-        "model_name": "llama3:8b-instruct-q4_K_M"
-    },
-    {
-        "model_name": "llama3.2:3b-instruct-q8_0"
-    }
-]
+[{"name": "llama3.2-vision:11b", "id": "085a1fdae525"}, {"name": "llama3:8b-instruct-q4_K_M", "id": "9b8f3f3385bf"}, {"name": "llama3.2:3b-instruct-q8_0", "id": "e410b836fe61"}]

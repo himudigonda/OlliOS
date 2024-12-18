@@ -1,51 +1,45 @@
-// frontend/OlliOS/OlliOS/Services/ModelService.swift
 import Combine
 import Foundation
 
 class ModelService: ObservableObject {
   @Published var models: [Model] = []
-  @Published var selectedModel: Model?
+  @Published var selectedModel: Model? = nil
   private let apiService = ApiService()
   private let dataService = DataService()
   private var cancellables = Set<AnyCancellable>()
 
   init() {
     loadSelectedModel()
-    fetchModels()  // Fetch models immediately on initialization
+    fetchModels()
     print("ModelService.swift: Initialized")
   }
 
   func fetchModels() {
-    guard let url = URL(string: "\(APIConstants.baseURL)\(APIConstants.listModelsEndpoint)") else {
-      print("ModelService.swift: Invalid URL")
-      return
-    }
+    guard let url = URL(string: "\(APIConstants.baseURL)/list_models") else { return }
     apiService.fetch(from: url)
       .map { (models: [[String: String]]) in
-        models.map { Model(model_name: $0["model_name"] ?? "Unknown") }
+        models.compactMap { Model(model_name: $0["model_name"] ?? "") }
       }
       .receive(on: DispatchQueue.main)
-      .sink(
-        receiveCompletion: { completion in
-          switch completion {
-          case .failure(let error):
-            print("ModelService.swift: Error fetching models - \(error)")
-          case .finished:
-            print("ModelService.swift: Successfully fetched models")
-          }
-        },
-        receiveValue: { [weak self] models in
-          if self?.models != models {
-            self?.models = models
-            if self?.selectedModel == nil {
-              self?.selectedModel = models.first
-              self?.saveSelectedModel()
-            }
-            print("ModelService.swift: Models updated")
-          }
-        }
-      )
+      .sink(receiveCompletion: handleFetchError, receiveValue: handleModels)
       .store(in: &cancellables)
+  }
+
+  private func handleFetchError(_ completion: Subscribers.Completion<Error>) {
+    if case .failure(let error) = completion {
+      print("ModelService.swift: Error fetching models - \(error)")
+    }
+  }
+
+  private func handleModels(_ models: [Model]) {
+    if models.isEmpty {
+      print("ModelService.swift: No models received, adding fallback model.")
+      self.models = [Model(model_name: "Default Model")]
+    } else {
+      self.models = models
+    }
+    self.selectedModel = self.models.first
+    saveSelectedModel()
   }
 
   func saveSelectedModel() {

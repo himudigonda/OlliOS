@@ -1,9 +1,11 @@
+// FrontEnd/OlliOS/OlliOS/Views/ChatView.swift
 import PhotosUI
 import SwiftUI
 import UniformTypeIdentifiers
 
 struct ChatView: View {
   @EnvironmentObject var viewModel: ChatViewModel
+  @EnvironmentObject var modelService: ModelService  // Add this line
   @State private var isGlobeActive = false
   @State private var selectedItem: PhotosPickerItem? = nil
   @State private var selectedImage: UIImage? = nil
@@ -13,21 +15,16 @@ struct ChatView: View {
     VStack(spacing: 0) {
       // Top Navigation Bar
       HStack {
-        Text(viewModel.selectedModel?.model_name ?? "Select Model")
-          .font(.system(size: 18, weight: .semibold))
-          .foregroundColor(.blue)
-          .onTapGesture {
-            showModelPicker()
-          }
-        Spacer()
-        Button(action: { viewModel.resetChat() }) {
-          Image(systemName: "arrow.clockwise")
-            .font(.system(size: 18))
-            .foregroundColor(.blue)
-        }
+        TopBar(selectedModel: $viewModel.selectedModel)
+          .environmentObject(modelService)
+
+        // Spacer()
+
       }
-      .padding()
-      .background(Color(UIColor.systemBackground))
+      .padding(.horizontal)
+      .padding(.top, 10)
+      .background(Color.systemGray6)
+
       Divider()
 
       // Messages Scroll Area

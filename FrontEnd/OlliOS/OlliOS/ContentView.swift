@@ -1,24 +1,22 @@
-// frontend/OlliOS/OlliOS/Views/ContentView.swift
 import SwiftUI
 
 struct ContentView: View {
-  @StateObject var viewModel = ChatViewModel()
-  @StateObject var modelService = ModelService()
+  @State private var isSidebarVisible = false
 
   var body: some View {
-    NavigationStack {
+    ZStack {
       ChatView()
-        .environmentObject(viewModel)
-        .onAppear {
-          print("ContentView.swift: onAppear called")
-          modelService.fetchModels()
-          print("ContentView.swift: modelService.fetchModels called")
-          // Set the selected model from ModelService
-          if let selectedModel = modelService.selectedModel {
-            viewModel.selectedModel = selectedModel
-            print("ContentView.swift: Loaded saved model - \(selectedModel.model_name)")
-          }
-        }
+      if isSidebarVisible {
+        SidebarView()
+          .transition(.move(edge: .leading))
+      }
     }
+    .gesture(
+      DragGesture()
+        .onEnded { value in
+          if value.translation.width > 50 { isSidebarVisible = true }
+          if value.translation.width < -50 { isSidebarVisible = false }
+        }
+    )
   }
 }

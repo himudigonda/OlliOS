@@ -9,6 +9,7 @@ import shutil
 import base64
 from PIL import Image
 from io import BytesIO
+import csv
 
 log = setup_logging()
 
@@ -19,14 +20,14 @@ model_service = ModelService()
 @router.get("/list_models", response_model=List[Dict])
 async def list_models():
     """
-    Endpoint to fetch the list of available models.
+    Fetches available models and returns a formatted JSON list.
     """
     try:
         models = model_service.get_models()
-        return models
+        return [{"model_name": model["name"]} for model in models if "name" in model]
     except Exception as e:
-        log.error(f"Error fetching models: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        log.error(f"Error fetching models: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch model list.")
 
 
 @router.post(

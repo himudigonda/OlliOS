@@ -1,8 +1,8 @@
-# backend/app/services/model_service.py
 import logging
 from app.core.llm_client import LLMClient
 from app.core.config import AppConfig
 from app.core.utils import setup_logging, load_json_from_file
+import subprocess
 import json
 
 log = setup_logging()
@@ -22,7 +22,6 @@ class ModelService:
         Returns the list of available models. Attempts to read from cache,
         if there's an error it will fetch the data again.
         """
-
         cached_models = load_json_from_file(self.cache_file)
         if cached_models:
             log.info("Loaded models from cache")
@@ -32,25 +31,24 @@ class ModelService:
 
     def fetch_and_cache_models(self) -> list:
         """
-        Fetches the list of available models from Ollama API
-        and saves them to the cache.
-        """
-
-        log.info("Fetching models from Ollama API")
-        models = self.llm_client.list_models()
-
-        if models:
-            log.info("Caching fetched models")
-            self._save_models_cache(models)
-        return models
-
-    def _save_models_cache(self, models: list):
-        """
-        Saves the formatted list of models to the cache file
+        Fetches the list of models from Ollama and saves them.
         """
         try:
+            output = subprocess.check_output(["ollama", "list"], text=True).strip()
+            models = []
+
+            for line in output.split("\n")[1:]:  # Skip the header row
+                if not line.strip():
+                    continue
+                parts = line.split()
+                if len(parts) >= 2:  # Ensure the required parts exist
+                    models.append({"name": parts[0], "id": parts[1]})
+
+            # Write to cache
             with open(self.cache_file, "w") as f:
-                json.dump(models, f, indent=4)
-            log.info(f"Saved models to cache file at {self.cache_file}")
+                json.dump(models, f)
+            log.info("Models successfully fetched and cached.")
+            return models
         except Exception as e:
-            log.error(f"Error saving models to cache: {e}")
+            log.error(f"Error fetching models: {e}")
+            return []
