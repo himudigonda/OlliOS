@@ -2,6 +2,7 @@
 import requests
 import json
 import logging
+import base64  # Add this import
 from app.core.config import AppConfig
 from app.core.utils import setup_logging
 import os
