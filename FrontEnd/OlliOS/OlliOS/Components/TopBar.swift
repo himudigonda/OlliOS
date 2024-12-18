@@ -3,19 +3,9 @@ import SwiftUI
 struct TopBar: View {
   @EnvironmentObject var modelService: ModelService
   @Binding var selectedModel: Model?
-  @Binding var isSidebarVisible: Bool
 
   var body: some View {
     HStack {
-      // Hamburger Menu on the Left
-      Button(action: {
-        isSidebarVisible.toggle()
-      }) {
-        Image(systemName: "line.horizontal.3")
-          .font(.system(size: 16, weight: .semibold))
-          .foregroundColor(.blue)
-      }
-
       Spacer()
 
       // Dropdown Menu Centered
@@ -50,7 +40,5 @@ struct TopBar: View {
     }
     .padding(.horizontal, 0)
     .padding(.vertical, 10)
-
-    //     .background(Color(UIColor.secondarySystemBackground))
   }
 }
