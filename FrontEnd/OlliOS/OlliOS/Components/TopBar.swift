@@ -19,20 +19,25 @@ struct TopBar: View {
       } label: {
         HStack {
           Text(selectedModel?.model_name ?? "Select Model")
-            .font(.system(size: 18, weight: .semibold))
+            .font(.system(size: 16, weight: .semibold))
           Image(systemName: "chevron.down")
             .foregroundColor(.blue)
         }
       }
 
       Spacer()
-      Button(action: { /* Reset Chat Action */  }) {
+
+      // Reset Chat Button
+      Button(action: {
+        print("Reset Chat")
+      }) {
         Image(systemName: "arrow.clockwise")
-          .font(.system(size: 18))
+          .font(.system(size: 16))
           .foregroundColor(.blue)
       }
     }
     .padding()
-    .background(Color(UIColor.secondarySystemBackground))
+    // .background(Color(UIColor.secondarySystemBackground))
+    // .clipShape(RoundedRectangle(cornerRadius: 25))
   }
 }
