@@ -16,5 +16,6 @@ struct MenuRow: View {
       Spacer()
     }
     .padding(.horizontal)
+    .padding(.vertical, UIConstants.Spacing.small)
   }
 }

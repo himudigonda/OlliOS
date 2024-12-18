@@ -1,4 +1,4 @@
-// frontend/OlliOS/OlliOS/Views/SettingsPage.swift
+// FrontEnd/OlliOS/OlliOS/Views/SettingsPage.swift
 import SwiftUI
 
 struct SettingsPage: View {
@@ -34,20 +34,6 @@ struct SettingsPage: View {
     } message: {
       Text("Are you sure you want to delete all chats?")
     }
-    .toolbar {
-      ToolbarItem(placement: .navigationBarTrailing) {
-        Button(action: {
-          dismiss()
-          print("SettingsPage.swift: Dismiss button pressed")
-        }) {
-          Image(systemName: "xmark")
-            .foregroundColor(.blue)
-        }
-      }
-    }
-    .onDisappear {
-      viewModel.savePreferences()
-      print("SettingsPage.swift: onDisappear called")
-    }
+
   }
 }

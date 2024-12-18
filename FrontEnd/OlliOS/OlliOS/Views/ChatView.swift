@@ -1,3 +1,4 @@
+// FrontEnd/OlliOS/OlliOS/Views/ChatView.swift
 import PhotosUI
 import SwiftUI
 import UniformTypeIdentifiers
@@ -10,125 +11,117 @@ struct ChatView: View {
   @State private var selectedImage: UIImage? = nil
   @State private var isDocumentPickerPresented = false
 
+
   var body: some View {
-    NavigationStack {
-      VStack(spacing: 0) {
+    VStack(spacing: 0) {
         // Messages Scroll Area
         ScrollViewReader { proxy in
-          ScrollView {
-            LazyVStack(alignment: .leading, spacing: 8) {
-              ForEach(viewModel.messages) { message in
-                ChatBubble(message: message)
-              }
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 8) {
+                    ForEach(viewModel.messages) { message in
+                        ChatBubble(message: message)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, 8)
             }
-            .padding(.horizontal)
-            .padding(.top, 8)
-          }
-          .onChange(of: viewModel.messages.count) {
-            scrollToLastMessage(proxy: proxy)
-          }
+            .onChange(of: viewModel.messages.count) {
+                scrollToLastMessage(proxy: proxy)
+            }
         }
-
+        
         // Bottom Input Bar
         VStack(spacing: 0) {
-          // Attachment Row (Conditional)
-          if !viewModel.attachments.isEmpty {
-            ScrollView(.horizontal, showsIndicators: false) {
-              HStack(spacing: 8) {
-                ForEach(viewModel.attachments.indices, id: \.self) { index in
-                  AttachmentThumbnail(url: viewModel.attachments[index]) {
-                    viewModel.attachments.remove(at: index)
-                  }
+            // Attachment Row (Conditional)
+            if !viewModel.attachments.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(viewModel.attachments.indices, id: \.self) { index in
+                            AttachmentThumbnail(url: viewModel.attachments[index]) {
+                                viewModel.attachments.remove(at: index)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 15)
+                    .padding(.top, 20)
                 }
-              }
-              .padding(.horizontal, 15)
-              .padding(.top, 20)
+                .frame(height: 95)  // Thumbnail Row Height
+                .transition(.opacity)
             }
-            .frame(height: 95)  // Thumbnail Row Height
-            .transition(.opacity)
-          }
-
-          // Input Row: Text Field + Buttons
-          VStack(spacing: 8) {
-            // Message Input Field
-            TextField("What's on your mind?", text: $viewModel.userInput)
-              .textFieldStyle(.plain)
-              .padding(.vertical, 10)
-              .padding(.horizontal, 12)
-              .background(Color.systemGray6)
-              .clipShape(RoundedRectangle(cornerRadius: 20))
-
-            // Buttons Row
-            HStack(spacing: 12) {
-              // Left Buttons
-              HStack(spacing: 12) {
-                Button(action: {
-                  if !isGlobeActive {
-                    isDocumentPickerPresented.toggle()
-                  }
-                }) {
-                  Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 24))
-                    .foregroundColor(isGlobeActive ? .gray : .blue)
+            
+            // Input Row: Text Field + Buttons
+            VStack(spacing: 8) {
+                // Message Input Field
+                TextField("What's on your mind?", text: $viewModel.userInput)
+                    .textFieldStyle(.plain)
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 12)
+                    .background(Color.systemGray6)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                
+                // Buttons Row
+                HStack(spacing: 12) {
+                    // Left Buttons
+                    HStack(spacing: 12) {
+                        Button(action: {
+                            if !isGlobeActive {
+                                isDocumentPickerPresented.toggle()
+                            }
+                        }) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 24))
+                                .foregroundColor(isGlobeActive ? .gray : .blue)
+                        }
+                        .disabled(isGlobeActive)
+                        
+                        PhotosPicker(selection: $selectedItem, matching: .images) {
+                            Image(systemName: "photo.fill")
+                                .font(.system(size: 24))
+                                .foregroundColor(isGlobeActive ? .gray : .blue)
+                        }
+                        .disabled(isGlobeActive)
+                    }
+                    
+                    Spacer()
+                    
+                    // Right Buttons
+                    HStack(spacing: 12) {
+                        if isGlobeActive {
+                            Button(action: {
+                                print("Web button pressed")
+                            }) {
+                                Text("Web")
+                                    .foregroundColor(.blue)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color.lightBlue)
+                                    .clipShape(Capsule())
+                            }
+                        }
+                        
+                        Button(action: { viewModel.sendMessage() }) {
+                            Image(systemName: "arrow.up.circle.fill")
+                                .font(.system(size: 30))
+                                .foregroundColor(.blue)
+                        }
+                        .disabled(viewModel.userInput.isEmpty)
+                    }
                 }
-                .disabled(isGlobeActive)
-
-                PhotosPicker(selection: $selectedItem, matching: .images) {
-                  Image(systemName: "photo.fill")
-                    .font(.system(size: 24))
-                    .foregroundColor(isGlobeActive ? .gray : .blue)
-                }
-                .disabled(isGlobeActive)
-              }
-
-              Spacer()
-
-              // Right Buttons
-              HStack(spacing: 12) {
-                if isGlobeActive {
-                  Button(action: {
-                    print("Web button pressed")
-                  }) {
-                    Text("Web")
-                      .foregroundColor(.blue)
-                      .padding(.horizontal, 12)
-                      .padding(.vertical, 6)
-                      .background(Color.lightBlue)
-                      .clipShape(Capsule())
-                  }
-                }
-
-                Button(action: { viewModel.sendMessage() }) {
-                  Image(systemName: "arrow.up.circle.fill")
-                    .font(.system(size: 30))
-                    .foregroundColor(.blue)
-                }
-                .disabled(viewModel.userInput.isEmpty)
-              }
             }
-          }
-          .padding(.horizontal, 12)
-          .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
         }
         .background(Color(UIColor.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 25))
         .padding(.horizontal)
         .padding(.bottom, 8)
         .animation(.easeInOut, value: viewModel.attachments.isEmpty)
-      }
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItem(placement: .principal) {
-          TopBar(selectedModel: $viewModel.selectedModel)
-            .environmentObject(modelService)
-        }
-      }
-      .onChange(of: selectedItem) { newItem in
-        loadSelectedImage(newItem)
-      }
-      .sheet(isPresented: $isDocumentPickerPresented) {
-        DocumentPickerView(documentURL: .constant(nil))
-      }
+    }
+    .onChange(of: selectedItem) { newItem in
+      loadSelectedImage(newItem)
+    }
+    .sheet(isPresented: $isDocumentPickerPresented) {
+      DocumentPickerView(documentURL: .constant(nil))
     }
   }
 

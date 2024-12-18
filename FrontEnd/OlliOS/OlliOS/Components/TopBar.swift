@@ -1,11 +1,21 @@
+// FrontEnd/OlliOS/OlliOS/Components/TopBar.swift
 import SwiftUI
 
 struct TopBar: View {
   @EnvironmentObject var modelService: ModelService
   @Binding var selectedModel: Model?
+  @Binding var isSidebarVisible: Bool
 
   var body: some View {
     HStack {
+
+      Button(action: {
+        isSidebarVisible.toggle()
+      }) {
+        Image(systemName: "line.horizontal.3")
+          .font(.system(size: 20))
+          .foregroundColor(.blue)
+      }
       Spacer()
 
       // Dropdown Menu Centered
@@ -32,6 +42,7 @@ struct TopBar: View {
       // Reset Chat Button
       Button(action: {
         print("Reset Chat")
+        //TODO: Add reset function
       }) {
         Image(systemName: "arrow.clockwise")
           .font(.system(size: 16))
