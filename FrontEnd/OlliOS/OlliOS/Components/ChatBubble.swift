@@ -26,8 +26,8 @@ struct ChatBubble: View {
             }
           }
         )
-        .foregroundColor(isUser ? .white : message.isThinking ? .gray : .primary)  // Text color
-        .clipShape(RoundedRectangle(cornerRadius: UIConstants.CornerRadius.large))  // rounded corners
+        .foregroundColor(isUser ? .white : message.isThinking ? .gray : .primary)
+        .clipShape(RoundedRectangle(cornerRadius: UIConstants.CornerRadius.large))
         .frame(maxWidth: UIScreen.main.bounds.width * 0.7, alignment: isUser ? .trailing : .leading)
     }
     .padding(.vertical, 4)  // space between messages

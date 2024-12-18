@@ -11,6 +11,7 @@ from PIL import Image
 from io import BytesIO
 import csv
 
+
 log = setup_logging()
 
 router = APIRouter()
@@ -39,13 +40,14 @@ async def generate_text(
     request: Request,
     model_name: str = Form(...),
     user_input: str = Form(""),
+    chat_id: str = Form(...),
     file: Optional[UploadFile] = File(None),
 ):
     """
     Endpoint to handle text generation queries, with optional image or document.
     """
     log.info(
-        f"Received POST request with query: {user_input} and model: {model_name} and file: {file}"
+        f"Received POST request with query: {user_input} and model: {model_name} and file: {file} and chat_id: {chat_id}"
     )
     temp_dir = None  # Initialize temp_dir to None
     try:
@@ -71,7 +73,7 @@ async def generate_text(
             model_name, user_input, image_b64
         )
         log.info(f"Generated response: {response}")
-        return {"response": response}
+        return {"response": response, "chat_id": chat_id}
     except Exception as e:
         log.error(f"Error processing request: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

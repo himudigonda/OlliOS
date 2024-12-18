@@ -38,7 +38,6 @@ struct AppConstants {
   static let appName = "OlliOS"
 }
 
-// MARK: - UserDefaults Keys
 struct UserDefaultsKeys {
   static let userPreferences = "userPreferences"
   static let savedChats = "savedChats"

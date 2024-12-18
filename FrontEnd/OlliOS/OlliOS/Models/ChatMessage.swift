@@ -8,19 +8,19 @@ struct ChatMessage: Identifiable, Codable {
   let isThinking: Bool
   let timestamp: Date
   var resourcePath: String?  // Store the resourcePath
-
+  var chat_id: UUID?
   enum Sender: String, Codable {
     case user
     case assistant
   }
 
   enum CodingKeys: String, CodingKey {
-    case id, content, sender, isThinking, timestamp, resourcePath
+    case id, content, sender, isThinking, timestamp, resourcePath, chat_id
   }
 
   init(
     id: UUID = UUID(), content: String, sender: Sender, isThinking: Bool, timestamp: Date,
-    resourcePath: String? = nil
+    resourcePath: String? = nil, chat_id: UUID? = nil
   ) {
     self.id = id
     self.content = content
@@ -28,6 +28,7 @@ struct ChatMessage: Identifiable, Codable {
     self.isThinking = isThinking
     self.timestamp = timestamp
     self.resourcePath = resourcePath
+    self.chat_id = chat_id
   }
 
   init(from decoder: Decoder) throws {
@@ -38,6 +39,7 @@ struct ChatMessage: Identifiable, Codable {
     isThinking = try container.decode(Bool.self, forKey: .isThinking)
     timestamp = try container.decode(Date.self, forKey: .timestamp)
     resourcePath = try container.decodeIfPresent(String.self, forKey: .resourcePath)
+    chat_id = try container.decodeIfPresent(UUID.self, forKey: .chat_id)
   }
 
   func encode(to encoder: Encoder) throws {
@@ -48,5 +50,6 @@ struct ChatMessage: Identifiable, Codable {
     try container.encode(isThinking, forKey: .isThinking)
     try container.encode(timestamp, forKey: .timestamp)
     try container.encode(resourcePath, forKey: .resourcePath)
+    try container.encode(chat_id, forKey: .chat_id)
   }
 }
