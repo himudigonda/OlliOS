@@ -9,7 +9,7 @@ struct ChatView: View {
   @State private var selectedItem: PhotosPickerItem? = nil
   @State private var selectedImage: UIImage? = nil
   @State private var isDocumentPickerPresented = false
-  @State private var isSidebarVisible = false  // Add this line
+  @State private var isSidebarVisible = false
 
   var body: some View {
     NavigationStack {
@@ -31,87 +31,96 @@ struct ChatView: View {
         }
 
         // Bottom Input Bar
-        VStack(spacing: 8) {
-          // First Row: Message Input Field
-          TextField("What's on your mind?", text: $viewModel.userInput, axis: .vertical)
-            .textFieldStyle(.plain)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(Color.systemGray6)
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .lineLimit(1...3)
-
-          // Second Row: Buttons
-          HStack(spacing: 12) {
-            // Left Buttons
-            HStack(spacing: 12) {
-              Button(action: {
-                if !isGlobeActive {
-                  isDocumentPickerPresented.toggle()
+        VStack(spacing: 0) {
+          // Attachment Row (Conditional)
+          if !viewModel.attachments.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+              HStack(spacing: 8) {
+                ForEach(viewModel.attachments.indices, id: \.self) { index in
+                  AttachmentThumbnail(url: viewModel.attachments[index]) {
+                    viewModel.attachments.remove(at: index)
+                  }
                 }
-              }) {
-                Image(systemName: "plus.circle.fill")
-                  .font(.system(size: 24))
-                  .foregroundColor(isGlobeActive ? .gray : .blue)
               }
-              .disabled(isGlobeActive)
-
-              PhotosPicker(selection: $selectedItem, matching: .images) {
-                Image(systemName: "photo.fill")
-                  .font(.system(size: 24))
-                  .foregroundColor(isGlobeActive ? .gray : .blue)
-              }
-              .disabled(isGlobeActive)
+              .padding(.horizontal, 15)
+              .padding(.top, 20)
             }
+            .frame(height: 95)  // Thumbnail Row Height
+            .transition(.opacity)
+          }
 
-            Spacer()
+          // Input Row: Text Field + Buttons
+          VStack(spacing: 8) {
+            // Message Input Field
+            TextField("What's on your mind?", text: $viewModel.userInput)
+              .textFieldStyle(.plain)
+              .padding(.vertical, 10)
+              .padding(.horizontal, 12)
+              .background(Color.systemGray6)
+              .clipShape(RoundedRectangle(cornerRadius: 20))
 
-            // Right Buttons
+            // Buttons Row
             HStack(spacing: 12) {
-              if isGlobeActive {
+              // Left Buttons
+              HStack(spacing: 12) {
                 Button(action: {
-                  print("Web button pressed")
+                  if !isGlobeActive {
+                    isDocumentPickerPresented.toggle()
+                  }
                 }) {
-                  Text("Web")
-                    .foregroundColor(.blue)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.lightBlue)
-                    .clipShape(Capsule())
+                  Image(systemName: "plus.circle.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(isGlobeActive ? .gray : .blue)
                 }
-                .transition(.move(edge: .leading))
+                .disabled(isGlobeActive)
+
+                PhotosPicker(selection: $selectedItem, matching: .images) {
+                  Image(systemName: "photo.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(isGlobeActive ? .gray : .blue)
+                }
+                .disabled(isGlobeActive)
               }
 
-              Button(action: {
-                isGlobeActive.toggle()
-              }) {
-                Image(systemName: "globe")
-                  .font(.system(size: 24))
-                  .foregroundColor(isGlobeActive ? .blue : .gray)
-              }
-              .animation(.easeInOut, value: isGlobeActive)
+              Spacer()
 
-              Button(action: { viewModel.sendMessage() }) {
-                Image(systemName: "arrow.up.circle.fill")
-                  .font(.system(size: 30))
-                  .foregroundColor(.blue)
+              // Right Buttons
+              HStack(spacing: 12) {
+                if isGlobeActive {
+                  Button(action: {
+                    print("Web button pressed")
+                  }) {
+                    Text("Web")
+                      .foregroundColor(.blue)
+                      .padding(.horizontal, 12)
+                      .padding(.vertical, 6)
+                      .background(Color.lightBlue)
+                      .clipShape(Capsule())
+                  }
+                }
+
+                Button(action: { viewModel.sendMessage() }) {
+                  Image(systemName: "arrow.up.circle.fill")
+                    .font(.system(size: 30))
+                    .foregroundColor(.blue)
+                }
+                .disabled(viewModel.userInput.isEmpty)
               }
-              .disabled(viewModel.userInput.isEmpty)
             }
           }
+          .padding(.horizontal, 12)
+          .padding(.vertical, 8)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
         .background(Color(UIColor.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 25))
         .padding(.horizontal)
         .padding(.bottom, 8)
+        .animation(.easeInOut, value: viewModel.attachments.isEmpty)
       }
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .principal) {
-          // TopBar replaces the navigation title
-          TopBar(selectedModel: $viewModel.selectedModel, isSidebarVisible: $isSidebarVisible)  // Add isSidebarVisible argument
+          TopBar(selectedModel: $viewModel.selectedModel, isSidebarVisible: $isSidebarVisible)
             .environmentObject(modelService)
         }
       }
@@ -138,7 +147,7 @@ struct ChatView: View {
 
   private func saveImageToTempDirectory(_ image: UIImage) {
     let tempDir = FileManager.default.temporaryDirectory
-    let fileURL = tempDir.appendingPathComponent("selected_image.jpg")
+    let fileURL = tempDir.appendingPathComponent(UUID().uuidString + ".jpg")
     if let data = image.jpegData(compressionQuality: 0.8) {
       do {
         try data.write(to: fileURL)
@@ -154,6 +163,30 @@ struct ChatView: View {
       withAnimation {
         proxy.scrollTo(lastMessageId, anchor: .bottom)
       }
+    }
+  }
+}
+
+// MARK: - Attachment Thumbnail View
+struct AttachmentThumbnail: View {
+  let url: URL
+  let onRemove: () -> Void
+
+  var body: some View {
+    ZStack(alignment: .topTrailing) {
+      Image(uiImage: UIImage(contentsOfFile: url.path) ?? UIImage())
+        .resizable()
+        .scaledToFill()
+        .frame(width: 80, height: 80)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+
+      Button(action: onRemove) {
+        Image(systemName: "xmark.circle.fill")
+          .foregroundColor(.red)
+          .background(Color.white)
+          .clipShape(Circle())
+      }
+      .offset(x: 8, y: -8)
     }
   }
 }
