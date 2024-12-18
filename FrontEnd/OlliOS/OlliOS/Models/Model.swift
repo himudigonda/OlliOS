@@ -18,6 +18,6 @@ struct Model: Identifiable, Codable, Hashable {
   }
 
   var isMultiModal: Bool {
-    return model_name.contains("bakllava") || model_name.contains("llava")
+    return model_name.contains("vision") || model_name.contains("multi")
   }
 }

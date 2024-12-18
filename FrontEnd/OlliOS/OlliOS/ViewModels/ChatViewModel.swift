@@ -8,82 +8,83 @@ class ChatViewModel: ObservableObject {
   @Published var userInput: String = ""
   @Published var isLoading: Bool = false
   @Published var selectedModel: Model?
+  @Published var attachments: [URL] = []  // Store selected attachments
   private let apiService = ApiService()
   private var cancellables = Set<AnyCancellable>()
 
-  func sendMessage(fileURL: URL? = nil) {
-    guard !userInput.isEmpty || fileURL != nil else { return }
+  func sendMessage() {
+    guard !userInput.isEmpty || !attachments.isEmpty else { return }
 
     let message = ChatMessage(
-      content: userInput, sender: .user, isThinking: false, timestamp: Date(),
-      resourcePath: fileURL?.absoluteString
+      content: userInput, sender: .user, isThinking: false, timestamp: Date()
     )
     messages.append(message)
     userInput = ""
-    fetchResponse(for: message.content, fileURL: fileURL)
+    fetchResponse(for: message.content, attachments: attachments)
 
     print(
-      "ChatViewModel.swift: Message sent - \(message.content) with file - \(fileURL?.lastPathComponent ?? "nil")"
+      "ChatViewModel.swift: Message sent - \(message.content) with attachments - \(attachments.map { $0.lastPathComponent }.joined(separator: ", "))"
     )
+    attachments.removeAll()  // Clear attachments after sending
   }
 
-private func fetchResponse(for input: String, fileURL: URL? = nil) {
-  guard let url = URL(string: "\(APIConstants.baseURL)\(APIConstants.generateTextEndpoint)"),
-    let model = selectedModel
-  else {
-    isLoading = false
-    hideThinkingBubble()
-    addMessage(
-      message: ChatMessage(
-        content: "Error: Invalid URL or model not selected",
-        sender: .assistant,
-        isThinking: false,
-        timestamp: Date()
+  private func fetchResponse(for input: String, attachments: [URL]) {
+    guard let url = URL(string: "\(APIConstants.baseURL)\(APIConstants.generateTextEndpoint)"),
+      let model = selectedModel
+    else {
+      isLoading = false
+      hideThinkingBubble()
+      addMessage(
+        message: ChatMessage(
+          content: "Error: Invalid URL or model not selected",
+          sender: .assistant,
+          isThinking: false,
+          timestamp: Date()
+        )
       )
-    )
-    print("ChatViewModel.swift: Error - Invalid URL or model not selected")
-    return
-  }
+      print("ChatViewModel.swift: Error - Invalid URL or model not selected")
+      return
+    }
 
-  let body: [String: String] = ["user_input": input, "model_name": model.model_name]
-  let queryParams: [String: String] = [:]
+    let body: [String: String] = ["user_input": input, "model_name": model.model_name]
+    let queryParams: [String: String] = [:]
 
-  isLoading = true
-  addThinkingBubble()
+    isLoading = true
+    addThinkingBubble()
 
-  apiService.post(to: url, body: body, queryParams: queryParams, fileURL: fileURL)
-    .receive(on: DispatchQueue.main)
-    .sink(
-      receiveCompletion: { completion in
-        self.isLoading = false
-        self.hideThinkingBubble()
-        if case .failure(let error) = completion {
+    apiService.post(to: url, body: body, queryParams: queryParams, fileURLs: attachments)
+      .receive(on: DispatchQueue.main)
+      .sink(
+        receiveCompletion: { completion in
+          self.isLoading = false
+          self.hideThinkingBubble()
+          if case .failure(let error) = completion {
+            self.addMessage(
+              message: ChatMessage(
+                content: "Error: \(error.localizedDescription)",
+                sender: .assistant,
+                isThinking: false,
+                timestamp: Date()
+              )
+            )
+            print("ChatViewModel.swift: Error - \(error.localizedDescription)")
+          }
+        },
+        receiveValue: { (response: TextResponse) in
+          self.hideThinkingBubble()
           self.addMessage(
             message: ChatMessage(
-              content: "Error: \(error.localizedDescription)",
+              content: response.response,
               sender: .assistant,
               isThinking: false,
               timestamp: Date()
             )
           )
-          print("ChatViewModel.swift: Error - \(error.localizedDescription)")
+          print("ChatViewModel.swift: Response received - \(response.response)")
         }
-      },
-      receiveValue: { (response: TextResponse) in
-        self.hideThinkingBubble()
-        self.addMessage(
-          message: ChatMessage(
-            content: response.response,
-            sender: .assistant,
-            isThinking: false,
-            timestamp: Date()
-          )
-        )
-        print("ChatViewModel.swift: Response received - \(response.response)")
-      }
-    )
-    .store(in: &cancellables)
-}
+      )
+      .store(in: &cancellables)
+  }
 
   private func addMessage(message: ChatMessage) {
     messages.append(message)

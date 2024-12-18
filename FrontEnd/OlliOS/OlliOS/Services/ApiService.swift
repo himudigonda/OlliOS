@@ -1,4 +1,4 @@
-// frontend/OlliOS/OlliOS/Services/ApiService.swift
+// FrontEnd/OlliOS/OlliOS/Services/ApiService.swift
 import Combine
 import Foundation
 import UniformTypeIdentifiers
@@ -25,46 +25,8 @@ class ApiService {
       .eraseToAnyPublisher()
   }
 
-  func post<T: Decodable>(to url: URL, body: [String: String], queryParams: [String: String])
-    -> AnyPublisher<T, Error>
-  {
-    var request = URLRequest(url: url)
-    request.httpMethod = "POST"
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-    if var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false) {
-      urlComponents.queryItems = queryParams.map { key, value in
-        URLQueryItem(name: key, value: value)
-      }
-      request.url = urlComponents.url
-    }
-
-    do {
-      request.httpBody = try JSONSerialization.data(withJSONObject: body)
-    } catch {
-      return Fail(error: error).eraseToAnyPublisher()
-    }
-
-    print(
-      "ApiService.swift: Posting to URL - \(url) with body - \(body) and queryParams - \(queryParams)"
-    )
-
-    return URLSession.shared.dataTaskPublisher(for: request)
-      .tryMap { data, response -> Data in
-        guard let httpResponse = response as? HTTPURLResponse,
-          200..<300 ~= httpResponse.statusCode
-        else {
-          throw URLError(.badServerResponse)
-        }
-        print("ApiService.swift: Data posted successfully")
-        return data
-      }
-      .decode(type: T.self, decoder: JSONDecoder())
-      .eraseToAnyPublisher()
-  }
-
   func post<T: Decodable>(
-    to url: URL, body: [String: String], queryParams: [String: String], fileURL: URL? = nil
+    to url: URL, body: [String: String], queryParams: [String: String], fileURLs: [URL] = []
   )
     -> AnyPublisher<T, Error>
   {
@@ -91,17 +53,19 @@ class ApiService {
       httpBody.appendString(string: "\(value)\r\n")
     }
 
-    // Add file if it exists
-    if let fileURL = fileURL, let fileData = try? Data(contentsOf: fileURL) {
-      let fileMimeType = getMimeType(for: fileURL)
-      httpBody.appendString(string: "--\(boundary)\r\n")
-      httpBody.appendString(
-        string:
-          "Content-Disposition: form-data; name=\"file\"; filename=\"\(fileURL.lastPathComponent)\"\r\n"
-      )
-      httpBody.appendString(string: "Content-Type: \(fileMimeType)\r\n\r\n")
-      httpBody.append(fileData)
-      httpBody.appendString(string: "\r\n")
+    // Add files if they exist
+    for fileURL in fileURLs {
+      if let fileData = try? Data(contentsOf: fileURL) {
+        let fileMimeType = getMimeType(for: fileURL)
+        httpBody.appendString(string: "--\(boundary)\r\n")
+        httpBody.appendString(
+          string:
+            "Content-Disposition: form-data; name=\"file\"; filename=\"\(fileURL.lastPathComponent)\"\r\n"
+        )
+        httpBody.appendString(string: "Content-Type: \(fileMimeType)\r\n\r\n")
+        httpBody.append(fileData)
+        httpBody.appendString(string: "\r\n")
+      }
     }
 
     // End the multipart form
@@ -109,7 +73,7 @@ class ApiService {
     request.httpBody = httpBody as Data
 
     print(
-      "ApiService.swift: Posting to URL - \(url) with body - \(body) and queryParams - \(queryParams) and file - \(fileURL?.lastPathComponent ?? "nil")"
+      "ApiService.swift: Posting to URL - \(url) with body - \(body) and queryParams - \(queryParams) and files - \(fileURLs.map { $0.lastPathComponent }.joined(separator: ", "))"
     )
 
     return URLSession.shared.dataTaskPublisher(for: request)
@@ -132,7 +96,6 @@ class ApiService {
     }
     return "application/octet-stream"
   }
-
 }
 
 extension NSMutableData {
