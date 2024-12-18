@@ -10,6 +10,7 @@
   - [Architecture](#architecture)
   - [Setup and Installation](#setup-and-installation)
   - [Usage](#usage)
+  - [App Demo](#app-demo)
   - [Backend](#backend)
     - [API Endpoints](#api-endpoints)
     - [Services](#services)
@@ -43,6 +44,11 @@
 ## Usage
 
 *Explain how to use the project, including any necessary commands and configurations.*
+
+## App Demo
+
+*Include screenshots or videos of the app prototype, design mockups, or product demo.*
+
 
 
 ## Backend
