@@ -1,5 +1,5 @@
 # backend/app/api/endpoints.py
-from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Form, Request
 from app.api.models import TextQuery, TextResponse, ErrorResponse
 from app.services.model_service import ModelService
 from typing import List, Dict, Optional
@@ -33,6 +33,7 @@ async def list_models():
     responses={400: {"model": ErrorResponse}},
 )
 async def generate_text(
+    request: Request,
     model_name: str = Form(...),
     user_input: str = Form(""),
     file: Optional[UploadFile] = File(None),
@@ -45,6 +46,7 @@ async def generate_text(
     )
     temp_dir = None  # Initialize temp_dir to None
     try:
+        log.debug(f"Request object: {request.__dict__}")  # Log the request details
         file_path = None
         if file:
             temp_dir = create_temp_dir()

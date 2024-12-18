@@ -27,63 +27,63 @@ class ChatViewModel: ObservableObject {
     )
   }
 
-  private func fetchResponse(for input: String, fileURL: URL? = nil) {
-    guard let url = URL(string: "\(APIConstants.baseURL)\(APIConstants.generateTextEndpoint)"),
-      let model = selectedModel
-    else {
-      isLoading = false
-      hideThinkingBubble()
-      addMessage(
-        message: ChatMessage(
-          content: "Error: Invalid URL or model not selected",
-          sender: .assistant,
-          isThinking: false,
-          timestamp: Date()
-        )
+private func fetchResponse(for input: String, fileURL: URL? = nil) {
+  guard let url = URL(string: "\(APIConstants.baseURL)\(APIConstants.generateTextEndpoint)"),
+    let model = selectedModel
+  else {
+    isLoading = false
+    hideThinkingBubble()
+    addMessage(
+      message: ChatMessage(
+        content: "Error: Invalid URL or model not selected",
+        sender: .assistant,
+        isThinking: false,
+        timestamp: Date()
       )
-      print("ChatViewModel.swift: Error - Invalid URL or model not selected")
-      return
-    }
+    )
+    print("ChatViewModel.swift: Error - Invalid URL or model not selected")
+    return
+  }
 
-    let body: [String: String] = ["user_input": input, "model_name": model.model_name]
-    let queryParams: [String: String] = [:]
+  let body: [String: String] = ["user_input": input, "model_name": model.model_name]
+  let queryParams: [String: String] = [:]
 
-    isLoading = true
-    addThinkingBubble()
+  isLoading = true
+  addThinkingBubble()
 
-    apiService.post(to: url, body: body, queryParams: queryParams, fileURL: fileURL)
-      .receive(on: DispatchQueue.main)
-      .sink(
-        receiveCompletion: { completion in
-          self.isLoading = false
-          self.hideThinkingBubble()
-          if case .failure(let error) = completion {
-            self.addMessage(
-              message: ChatMessage(
-                content: "Error: \(error.localizedDescription)",
-                sender: .assistant,
-                isThinking: false,
-                timestamp: Date()
-              )
-            )
-            print("ChatViewModel.swift: Error - \(error.localizedDescription)")
-          }
-        },
-        receiveValue: { (response: TextResponse) in
-          self.hideThinkingBubble()
+  apiService.post(to: url, body: body, queryParams: queryParams, fileURL: fileURL)
+    .receive(on: DispatchQueue.main)
+    .sink(
+      receiveCompletion: { completion in
+        self.isLoading = false
+        self.hideThinkingBubble()
+        if case .failure(let error) = completion {
           self.addMessage(
             message: ChatMessage(
-              content: response.response,
+              content: "Error: \(error.localizedDescription)",
               sender: .assistant,
               isThinking: false,
               timestamp: Date()
             )
           )
-          print("ChatViewModel.swift: Response received - \(response.response)")
+          print("ChatViewModel.swift: Error - \(error.localizedDescription)")
         }
-      )
-      .store(in: &cancellables)
-  }
+      },
+      receiveValue: { (response: TextResponse) in
+        self.hideThinkingBubble()
+        self.addMessage(
+          message: ChatMessage(
+            content: response.response,
+            sender: .assistant,
+            isThinking: false,
+            timestamp: Date()
+          )
+        )
+        print("ChatViewModel.swift: Response received - \(response.response)")
+      }
+    )
+    .store(in: &cancellables)
+}
 
   private func addMessage(message: ChatMessage) {
     messages.append(message)

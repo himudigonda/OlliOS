@@ -1,0 +1,11 @@
+[
+    {
+        "model_name": "llama3.2-vision:11b"
+    },
+    {
+        "model_name": "llama3:8b-instruct-q4_K_M"
+    },
+    {
+        "model_name": "llama3.2:3b-instruct-q8_0"
+    }
+]
