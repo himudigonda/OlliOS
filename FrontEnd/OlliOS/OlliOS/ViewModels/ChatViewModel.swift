@@ -12,20 +12,30 @@ class ChatViewModel: ObservableObject {
   private let apiService = ApiService()
   private var cancellables = Set<AnyCancellable>()
 
+    init() {
+        print("ChatViewModel.swift: Initialized")
+    }
+
   func sendMessage() {
-    guard !userInput.isEmpty || !attachments.isEmpty else { return }
+    guard !userInput.isEmpty || !attachments.isEmpty else {
+        print("ChatViewModel.swift: Message not sent due to empty user input and attachments")
+        return
+    }
 
     let message = ChatMessage(
       content: userInput, sender: .user, isThinking: false, timestamp: Date()
     )
     messages.append(message)
+      print("ChatViewModel.swift: Added user message - \(message.content)")
     userInput = ""
+      print("ChatViewModel.swift: Input cleared")
     fetchResponse(for: message.content, attachments: attachments)
 
     print(
       "ChatViewModel.swift: Message sent - \(message.content) with attachments - \(attachments.map { $0.lastPathComponent }.joined(separator: ", "))"
     )
     attachments.removeAll()  // Clear attachments after sending
+      print("ChatViewModel.swift: Attachments cleared")
   }
 
   private func fetchResponse(for input: String, attachments: [URL]) {
@@ -42,7 +52,7 @@ class ChatViewModel: ObservableObject {
           timestamp: Date()
         )
       )
-      print("ChatViewModel.swift: Error - Invalid URL or model not selected")
+        print("ChatViewModel.swift: Error - Invalid URL or model not selected")
       return
     }
 
@@ -50,6 +60,7 @@ class ChatViewModel: ObservableObject {
     let queryParams: [String: String] = [:]
 
     isLoading = true
+      print("ChatViewModel.swift: Loading started")
     addThinkingBubble()
 
     apiService.post(to: url, body: body, queryParams: queryParams, fileURLs: attachments)
@@ -57,6 +68,7 @@ class ChatViewModel: ObservableObject {
       .sink(
         receiveCompletion: { completion in
           self.isLoading = false
+            print("ChatViewModel.swift: Loading completed")
           self.hideThinkingBubble()
           if case .failure(let error) = completion {
             self.addMessage(
@@ -67,7 +79,7 @@ class ChatViewModel: ObservableObject {
                 timestamp: Date()
               )
             )
-            print("ChatViewModel.swift: Error - \(error.localizedDescription)")
+              print("ChatViewModel.swift: Error - \(error.localizedDescription)")
           }
         },
         receiveValue: { (response: TextResponse) in
@@ -80,7 +92,7 @@ class ChatViewModel: ObservableObject {
               timestamp: Date()
             )
           )
-          print("ChatViewModel.swift: Response received - \(response.response)")
+            print("ChatViewModel.swift: Response received - \(response.response)")
         }
       )
       .store(in: &cancellables)
@@ -88,35 +100,35 @@ class ChatViewModel: ObservableObject {
 
   private func addMessage(message: ChatMessage) {
     messages.append(message)
-    print("ChatViewModel.swift: Message added - \(message.content)")
+      print("ChatViewModel.swift: Message added - \(message.content)")
   }
 
   private func addThinkingBubble() {
     let thinkingMessage = ChatMessage(
       content: "Thinking...", sender: .assistant, isThinking: true, timestamp: Date())
     messages.append(thinkingMessage)
-    print("ChatViewModel.swift: Thinking bubble added")
+      print("ChatViewModel.swift: Thinking bubble added")
   }
 
   private func hideThinkingBubble() {
     if let index = messages.firstIndex(where: { $0.isThinking }) {
       messages.remove(at: index)
-      print("ChatViewModel.swift: Thinking bubble hidden")
+        print("ChatViewModel.swift: Thinking bubble hidden")
     }
   }
 
   func resetChat() {
     messages.removeAll()
-    print("ChatViewModel.swift: Chat reset")
+      print("ChatViewModel.swift: Chat reset")
   }
 
   func deleteAllChats() {
     messages.removeAll()
-    print("ChatViewModel.swift: All chats deleted")
+      print("ChatViewModel.swift: All chats deleted")
   }
 
   func savePreferences() {
     // Implement saving preferences if needed
-    print("ChatViewModel.swift: Preferences saved")
+      print("ChatViewModel.swift: Preferences saved")
   }
 }

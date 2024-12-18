@@ -7,6 +7,8 @@ from app.core.utils import setup_logging, create_temp_dir
 import os
 import shutil
 import base64
+from PIL import Image
+from io import BytesIO
 
 log = setup_logging()
 
@@ -55,9 +57,17 @@ async def generate_text(
                 f.write(await file.read())
                 log.info(f"File {file.filename} saved to {file_path}")
 
+        # Convert image to base64 if file_path exists
+        image_b64 = None
+        if file_path:
+            pil_image = Image.open(file_path)
+            buffered = BytesIO()
+            pil_image.save(buffered, format="JPEG")
+            image_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+
         # Call the Ollama integration to get the response
         response = model_service.llm_client.generate_response(
-            model_name, user_input, file_path
+            model_name, user_input, image_b64
         )
         log.info(f"Generated response: {response}")
         return {"response": response}
