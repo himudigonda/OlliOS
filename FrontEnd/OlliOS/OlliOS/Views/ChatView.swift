@@ -28,8 +28,6 @@ struct ChatView: View {
       }
       .padding()
       .background(Color(UIColor.systemBackground))
-      // .shadow(color: .gray.opacity(0.2), radius: 2, x: 0, y: 1)
-
       Divider()
 
       // Messages Scroll Area
@@ -38,15 +36,6 @@ struct ChatView: View {
           LazyVStack(alignment: .leading, spacing: 8) {
             ForEach(viewModel.messages) { message in
               ChatBubble(message: message)
-
-              if let image = selectedImage, message.sender == .user {
-                Image(uiImage: image)
-                  .resizable()
-                  .scaledToFit()
-                  .frame(width: 150, height: 150)
-                  .clipShape(RoundedRectangle(cornerRadius: 12))
-                  .padding(.top, 4)
-              }
             }
           }
           .padding(.horizontal)
@@ -58,61 +47,83 @@ struct ChatView: View {
       }
 
       // Bottom Input Bar
-      VStack(spacing: 0) {
-        VStack(spacing: 8) {
-          // First Row: Message Input Field
-          TextField("Message", text: $viewModel.userInput, axis: .vertical)
-            .textFieldStyle(.plain)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            // .background(Color.gray.opacity(0.2))
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .lineLimit(1...3)
+      VStack(spacing: 8) {
+        // First Row: Message Input Field
+        TextField("What's on your mind?", text: $viewModel.userInput, axis: .vertical)
+          .textFieldStyle(.plain)
+          .padding(.horizontal, 12)
+          .padding(.vertical, 10)
+          .clipShape(RoundedRectangle(cornerRadius: 20))
+          .lineLimit(1...3)
 
-          // Second Row: Buttons
-          HStack(spacing: 16) {
-            // Left Icons
-            HStack(spacing: 12) {
-              Button(action: {
+        // Second Row: Buttons
+        HStack(spacing: 12) {
+          // Left Icons
+          HStack(spacing: 12) {
+            // Plus Icon (disabled when Globe is active)
+            Button(action: {
+              if !isGlobeActive {
                 isDocumentPickerPresented.toggle()
+              }
+            }) {
+              Image(systemName: "plus.circle.fill")
+                .font(.system(size: 24))
+                .foregroundColor(isGlobeActive ? .gray : .blue)
+            }
+            .disabled(isGlobeActive)
+
+            // Photos Icon (disabled when Globe is active)
+            PhotosPicker(selection: $selectedItem, matching: .images) {
+              Image(systemName: "photo.fill")
+                .font(.system(size: 24))
+                .foregroundColor(isGlobeActive ? .gray : .blue)
+            }
+            .disabled(isGlobeActive)
+
+            // "Search Web" Button (appears when globe is active)
+          }
+
+          Spacer()
+
+          // Right Icons
+          HStack(spacing: 12) {
+            if isGlobeActive {
+              Button(action: {
+                print("Web button pressed")
               }) {
-                Image(systemName: "plus.circle.fill")
-                  .font(.system(size: 24))
+                Text("Web")
                   .foregroundColor(.blue)
+                  .padding(.horizontal, 12)
+                  .padding(.vertical, 6)
+                  .background(Color.lightBlue)
+                  .clipShape(Capsule())
               }
-
-              PhotosPicker(selection: $selectedItem, matching: .images) {
-                Image(systemName: "photo.fill")
-                  .font(.system(size: 24))
-                  .foregroundColor(.blue)
-              }
+              .transition(.move(edge: .leading))
             }
 
-            Spacer()
-
-            // Right Icons
-            HStack(spacing: 12) {
-              Button(action: { isGlobeActive.toggle() }) {
-                Image(systemName: "globe")
-                  .font(.system(size: 24))
-                  .foregroundColor(isGlobeActive ? .blue : .gray)
-              }
-
-              Button(action: { viewModel.sendMessage() }) {
-                Image(systemName: "arrow.up.circle.fill")
-                  .font(.system(size: 30))
-                  .foregroundColor(.blue)
-              }
-              .disabled(viewModel.userInput.isEmpty)
+            Button(action: {
+              isGlobeActive.toggle()
+            }) {
+              Image(systemName: "globe")
+                .font(.system(size: 24))
+                .foregroundColor(isGlobeActive ? .blue : .gray)
             }
+            .animation(.easeInOut, value: isGlobeActive)
+
+            Button(action: { viewModel.sendMessage() }) {
+              Image(systemName: "arrow.up.circle.fill")
+                .font(.system(size: 30))
+                .foregroundColor(.blue)
+            }
+            .disabled(viewModel.userInput.isEmpty)
           }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(Color(UIColor.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 25))
-        .padding(.horizontal)
       }
+      .padding(.horizontal, 12)
+      .padding(.vertical, 8)
+      .background(Color(UIColor.secondarySystemBackground))
+      .clipShape(RoundedRectangle(cornerRadius: 25))
+      .padding(.horizontal)
       .padding(.bottom, 8)
     }
     .onChange(of: selectedItem) { newItem in

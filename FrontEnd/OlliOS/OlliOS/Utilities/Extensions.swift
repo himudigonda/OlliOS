@@ -17,6 +17,10 @@ extension Color {
   static var systemGray6: Color {
     Color(UIColor.systemGray6)
   }
+  static var lightBlue: Color {
+  Color(red: 185 / 255, green: 230 / 255, blue: 255 / 255)
+}
+
 }
 
 extension View {
